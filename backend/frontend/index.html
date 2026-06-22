@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <title>CRM Latihan - PJJ Pemrograman Web</title>
+        <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
+        <link href="css/styles.css" rel="stylesheet" />
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    </head>
+    <body class="sb-nav-fixed">
+        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+            <a class="navbar-brand ps-3" href="index.html">CRM Latihan</a>
+            <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+            <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0"></form>
+            <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown"><i class="fas fa-user fa-fw"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="#" onclick="logout()">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        
+        <div id="layoutSidenav">
+            <div id="layoutSidenav_nav">
+                <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                    <div class="sb-sidenav-menu">
+                        <div class="nav">
+                            <div class="sb-sidenav-menu-heading">Summary</div>
+                            <a class="nav-link active" href="#" onclick="switchView('dashboard')">
+                                <div class="sb-nav-link-icon"><i class="fas fa-chart-line"></i></div> Home
+                            </a>
+                            
+                            <div class="sb-sidenav-menu-heading">Menu CRM</div>
+                            <a class="nav-link" href="#" onclick="switchView('customers')">
+                                <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div> Customers
+                            </a>
+                            <a class="nav-link" href="#" onclick="switchView('leads')">
+                                <div class="sb-nav-link-icon"><i class="fas fa-bullseye"></i></div> Leads
+                            </a>
+                            <a class="nav-link" href="#" onclick="switchView('deals')">
+                                <div class="sb-nav-link-icon"><i class="fas fa-handshake"></i></div> Deals
+                            </a>
+                            <a class="nav-link" href="#" onclick="switchView('contacts')">
+                                <div class="sb-nav-link-icon"><i class="fas fa-address-book"></i></div> Contacts
+                            </a>
+                            <a class="nav-link" href="#" onclick="switchView('activities')">
+                                <div class="sb-nav-link-icon"><i class="fas fa-tasks"></i></div> Activities
+                            </a>
+                            <a class="nav-link" href="#" onclick="switchView('users')">
+                                <div class="sb-nav-link-icon"><i class="fas fa-user-cog"></i></div> Manajemen Users
+                            </a>
+                        </div>
+                    </div>
+                    <div class="sb-sidenav-footer">
+                        <div class="small">Identitas Sesi:</div>
+                        <span id="userRoleBadge">Memuat...</span>
+                    </div>
+                </nav>
+            </div>
+            
+            <div id="layoutSidenav_content">
+                <main>
+                    <div class="container-fluid px-4">
+                        <h1 class="mt-4" id="viewTitle">Dashboard Utama</h1>
+                        <ol class="breadcrumb mb-4">
+                            <li class="breadcrumb-item active" id="viewSubTitle">Laporan Statistik</li>
+                        </ol>
+
+                        <div id="dynamicMainContent">
+                            </div>
+                        
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <div class="modal fade" id="crmModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="crmModalLabel">Form Manajer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="crmForm">
+                        <div class="modal-body" id="crmModalBody">
+                            </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" id="btnSubmitForm" class="btn btn-primary">Simpan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="js/scripts.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="js/app.js"></script>
+    </body>
+</html>

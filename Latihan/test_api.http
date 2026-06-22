@@ -1,0 +1,50 @@
+GET /
+host: localhost:3000
+
+###
+GET /customers
+host: localhost:3000
+
+###
+GET /customers/1
+host: localhost:3000
+
+###
+GET /leads
+host: localhost:3000
+
+###
+GET /leads/1
+host: localhost:3000
+
+###
+GET /deals
+host: localhost:3000
+
+###
+GET /deals/1
+host: localhost:3000
+
+###
+GET /contacts
+host: localhost:3000
+
+###
+GET /contacts/1
+host: localhost:3000
+
+###
+GET /activities
+host: localhost:3000
+
+###
+GET /activities/1
+host: localhost:3000
+
+###
+GET /users
+host: localhost:3000
+
+###
+GET /users/1
+host: localhost:3000
