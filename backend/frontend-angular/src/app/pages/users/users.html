@@ -25,28 +25,32 @@
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
+                                <th>Password</th>
                                 <th>Role</th>
+                                <th>Created At</th>
                                 <th class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @for (item of users; track item.id) {
                                 <tr>
-                                    <td>#{{ item.id }}</td>
+                                    <td>{{ item.id }}</td>
                                     <td><strong>{{ item.name }}</strong></td>
                                     <td>{{ item.email }}</td>
+                                    <td class="text-muted"><i>*** Terenkripsi ***</i></td>
                                     <td>
                                         @if(item.role === 'admin') { <span class="badge bg-danger">Admin</span> }
                                         @else if(item.role === 'sales') { <span class="badge bg-success">Sales</span> }
                                         @else { <span class="badge bg-secondary">Staff</span> }
                                     </td>
+                                    <td>{{ item.created_at | date:'dd/MM/yyyy' }}</td>
                                     <td class="text-center">
                                         <button class="btn btn-sm btn-primary me-2" (click)="openEditModal(item)"><i class="fas fa-edit"></i></button>
                                         <button class="btn btn-sm btn-danger" (click)="deleteUser(item.id, item.name)"><i class="fas fa-trash"></i></button>
                                     </td>
                                 </tr>
                             } @empty {
-                                <tr><td colspan="5" class="text-center py-4">Data kosong.</td></tr>
+                                <tr><td colspan="7" class="text-center py-4">Data kosong.</td></tr>
                             }
                         </tbody>
                     </table>
@@ -61,18 +65,18 @@
     <div class="modal-content">
       <div class="modal-header"><h5 class="modal-title">Tambah User</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <div class="mb-3"><label>Nama Lengkap</label><input type="text" class="form-control" [(ngModel)]="newUser.name"></div>
-        <div class="mb-3"><label>Email Login</label><input type="email" class="form-control" [(ngModel)]="newUser.email"></div>
+        <div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control" [(ngModel)]="newUser.name"></div>
+        <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" [(ngModel)]="newUser.email"></div>
         <div class="mb-3">
-            <label>Password</label>
-            <input type="password" class="form-control" [(ngModel)]="newUser.password" placeholder="Kosongkan saat edit jika tidak diubah">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-control" [(ngModel)]="newUser.password" placeholder="Isi jika ganti password">
         </div>
         <div class="mb-3">
-            <label>Role / Akses (Enum)</label>
+            <label class="form-label">Role (Enum)</label>
             <select class="form-select" [(ngModel)]="newUser.role">
                 <option value="admin">Admin</option>
-                <option value="sales">Sales</option>
                 <option value="staff">Staff</option>
+                <option value="sales">Sales</option>
             </select>
         </div>
       </div>
@@ -89,18 +93,18 @@
     <div class="modal-content">
       <div class="modal-header"><h5 class="modal-title">Edit User</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <div class="mb-3"><label>Nama Lengkap</label><input type="text" class="form-control" [(ngModel)]="newUser.name"></div>
-        <div class="mb-3"><label>Email Login</label><input type="email" class="form-control" [(ngModel)]="newUser.email"></div>
+        <div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control" [(ngModel)]="editUserData.name"></div>
+        <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" [(ngModel)]="editUserData.email"></div>
         <div class="mb-3">
-            <label>Password</label>
-            <input type="password" class="form-control" [(ngModel)]="newUser.password" placeholder="Kosongkan saat edit jika tidak diubah">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-control" [(ngModel)]="editUserData.password" placeholder="Isi jika ganti password">
         </div>
         <div class="mb-3">
-            <label>Role / Akses (Enum)</label>
-            <select class="form-select" [(ngModel)]="newUser.role">
+            <label class="form-label">Role (Enum)</label>
+            <select class="form-select" [(ngModel)]="editUserData.role">
                 <option value="admin">Admin</option>
-                <option value="sales">Sales</option>
                 <option value="staff">Staff</option>
+                <option value="sales">Sales</option>
             </select>
         </div>
       </div>

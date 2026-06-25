@@ -74,6 +74,14 @@ export class Users implements OnInit {
 
   saveEditUser() {
     if (!this.editUserData.name) { alert("Nama wajib diisi!"); return; }
+
+    const payload: any = {
+      name: this.editUserData.name,
+      email: this.editUserData.email,
+      role: this.editUserData.role
+    };
+    if (this.editUserData.password) payload.password = this.editUserData.password;
+
     this.isUpdating = true;
     this.api.updateUser(this.editUserData.id, this.editUserData).subscribe({
       next: () => {

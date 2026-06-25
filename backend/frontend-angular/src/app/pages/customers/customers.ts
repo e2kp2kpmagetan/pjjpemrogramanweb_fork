@@ -53,19 +53,35 @@ export class Customers implements OnInit {
     });
   }
 
-  saveCustomer() {
-    if (!this.newCustomer.name || !this.newCustomer.email) {
-      alert("Nama dan Email wajib diisi!");
-      return;
+  // Fungsi untuk mengekstrak ID dari Token JWT
+  getCurrentUserId(): number {
+    if (isPlatformBrowser(this.platformId)) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          // JWT terdiri dari 3 bagian dipisah titik. Bagian ke-2 adalah payload (data diri)
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          return payload.id || payload.userId || 1; // Ambil ID, jika gagal fallback ke 1
+        } catch (e) {
+          console.error("Gagal membaca token", e);
+        }
+      }
     }
+    return 1; // Fallback jika tidak login
+  }
+
+  saveCustomer() {
+    if (!this.newCustomer.name) { alert("Nama wajib diisi!"); return; }
+    
+    // Pastikan created_by diisi secara diam-diam menggunakan ID dari Token
+    this.newCustomer.created_by = this.getCurrentUserId();
 
     this.isSaving = true;
     this.api.createCustomer(this.newCustomer).subscribe({
-      next: (res) => {
-        // Jika sukses, reload tabel agar data baru muncul
+      next: () => {
         this.loadCustomers();
-        // Reset form
-        this.newCustomer = { name: '', email: '', phone: '', company: '', status: '', created_by: 1 };
+        // Reset form dengan created_by otomatis lagi
+        this.newCustomer = { name: '', email: '', phone: '', company: '', status: '', created_by: this.getCurrentUserId() };
         this.isSaving = false;
         
         // Tutup modal menggunakan Vanilla JS (Cara paling aman di Angular tanpa jQuery)
@@ -108,6 +124,14 @@ export class Customers implements OnInit {
       alert("Nama dan Email wajib diisi!");
       return;
     }
+
+    const payload = {
+      name: this.editCustomerData.name,
+      email: this.editCustomerData.email,
+      phone: this.editCustomerData.phone,
+      company: this.editCustomerData.company,
+      status: this.editCustomerData.status
+    };
 
     this.isUpdating = true;
     this.api.updateCustomer(this.editCustomerData.id, this.editCustomerData).subscribe({

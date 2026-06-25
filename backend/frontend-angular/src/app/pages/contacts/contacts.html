@@ -24,27 +24,31 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Customer ID</th>
-                                <th>Nama</th>
+                                <th>Name</th>
                                 <th>Email</th>
                                 <th>Phone</th>
                                 <th>Position</th>
+                                <th>Created At</th>
                                 <th class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @for (item of contacts; track item.id) {
                                 <tr>
-                                    <td>#{{ item.id }}</td>
-                                    <td>{{ item.name }}<br><span class="badge bg-info text-dark">{{ item.position }}</span></td>
-                                    <td>{{ item.email }}<br><small>{{ item.phone }}</small></td>
-                                    <td>Cust ID: {{ item.customer_id }}</td>
+                                    <td>{{ item.id }}</td>
+                                    <td>{{ item.customer_id }}</td>
+                                    <td><strong>{{ item.name }}</strong></td>
+                                    <td>{{ item.email }}</td>
+                                    <td>{{ item.phone }}</td>
+                                    <td><span class="badge bg-info text-dark">{{ item.position }}</span></td>
+                                    <td>{{ item.created_at | date:'dd/MM/yyyy' }}</td>
                                     <td class="text-center">
                                         <button class="btn btn-sm btn-primary me-2" (click)="openEditModal(item)"><i class="fas fa-edit"></i></button>
                                         <button class="btn btn-sm btn-danger" (click)="deleteContact(item.id, item.name)"><i class="fas fa-trash"></i></button>
                                     </td>
                                 </tr>
                             } @empty {
-                                <tr><td colspan="5" class="text-center py-4">Data kosong.</td></tr>
+                                <tr><td colspan="8" class="text-center py-4">Data kosong.</td></tr>
                             }
                         </tbody>
                     </table>
@@ -59,11 +63,19 @@
     <div class="modal-content">
       <div class="modal-header"><h5 class="modal-title">Tambah Contact</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <div class="mb-3"><label>ID Customer Terkait</label><input type="number" class="form-control" [(ngModel)]="newContact.customer_id"></div>
-        <div class="mb-3"><label>Nama Kontak</label><input type="text" class="form-control" [(ngModel)]="newContact.name"></div>
-        <div class="mb-3"><label>Email</label><input type="email" class="form-control" [(ngModel)]="newContact.email"></div>
-        <div class="mb-3"><label>Telepon</label><input type="text" class="form-control" [(ngModel)]="newContact.phone"></div>
-        <div class="mb-3"><label>Posisi / Jabatan</label><input type="text" class="form-control" [(ngModel)]="newContact.position"></div>
+        <div class="mb-3">
+            <label class="form-label">Pilih Customer <span class="text-danger">*</span></label>
+            <select class="form-select" [(ngModel)]="newContact.customer_id">
+                <option [ngValue]="null" disabled selected>-- Pilih Customer --</option>
+                @for (cust of customersList; track cust.id) {
+                    <option [ngValue]="cust.id">{{ cust.name }}</option>
+                }
+            </select>
+        </div>
+        <div class="mb-3"><label class="form-label">Nama</label><input type="text" class="form-control" [(ngModel)]="newContact.name"></div>
+        <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" [(ngModel)]="newContact.email"></div>
+        <div class="mb-3"><label class="form-label">Telepon</label><input type="text" class="form-control" [(ngModel)]="newContact.phone"></div>
+        <div class="mb-3"><label class="form-label">Position / Jabatan</label><input type="text" class="form-control" [(ngModel)]="newContact.position"></div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -78,11 +90,19 @@
     <div class="modal-content">
       <div class="modal-header"><h5 class="modal-title">Edit Contact</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <div class="mb-3"><label>ID Customer Terkait</label><input type="number" class="form-control" [(ngModel)]="newContact.customer_id"></div>
-        <div class="mb-3"><label>Nama Kontak</label><input type="text" class="form-control" [(ngModel)]="newContact.name"></div>
-        <div class="mb-3"><label>Email</label><input type="email" class="form-control" [(ngModel)]="newContact.email"></div>
-        <div class="mb-3"><label>Telepon</label><input type="text" class="form-control" [(ngModel)]="newContact.phone"></div>
-        <div class="mb-3"><label>Posisi / Jabatan</label><input type="text" class="form-control" [(ngModel)]="newContact.position"></div>
+        <div class="mb-3">
+            <label class="form-label">Pilih Customer <span class="text-danger">*</span></label>
+            <select class="form-select" [(ngModel)]="editContactData.customer_id">
+                <option [ngValue]="null" disabled selected>-- Pilih Customer --</option>
+                @for (cust of customersList; track cust.id) {
+                    <option [ngValue]="cust.id">{{ cust.name }}</option>
+                }
+            </select>
+        </div>
+        <div class="mb-3"><label class="form-label">Nama</label><input type="text" class="form-control" [(ngModel)]="editContactData.name"></div>
+        <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" [(ngModel)]="editContactData.email"></div>
+        <div class="mb-3"><label class="form-label">Telepon</label><input type="text" class="form-control" [(ngModel)]="editContactData.phone"></div>
+        <div class="mb-3"><label class="form-label">Position / Jabatan</label><input type="text" class="form-control" [(ngModel)]="editContactData.position"></div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>

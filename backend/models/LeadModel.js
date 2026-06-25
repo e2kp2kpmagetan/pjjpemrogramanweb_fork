@@ -57,4 +57,30 @@ const destroy = async (id) =>{
   );
   return affectedRows;
 }
-module.exports = { findAll, findById, store, update, destroy };
+
+// =================================================================
+// FUNGSI KHUSUS TRIGGER DARI LEADS (JANGAN DIHAPUS)
+// =================================================================
+const createFormLead = async (leadId, title, stage) => {
+  const [{insertId}] = await db.query(
+    `INSERT INTO deals (lead_id, title, stage) VALUES (?,?,?)`,
+    [leadId, title, stage ?? null]
+  );
+  return insertId;
+}
+
+const updateStageByLeadId = async (leadId, stage, value = null) => {
+  // Kita sengaja tidak meng-update 'value' agar tidak merusak nominal Deal yang sudah diinput manual
+  await db.query(
+    `UPDATE deals SET stage=? WHERE lead_id=?`,
+    [stage ?? null, leadId]
+  );
+};
+
+const removeByLeadId = async (leadId) => {
+  await db.query(`DELETE FROM deals WHERE lead_id =?`, [leadId]);
+};
+module.exports = { 
+  findAll, findById, store, update, destroy, 
+  createFormLead, updateStageByLeadId, removeByLeadId 
+};

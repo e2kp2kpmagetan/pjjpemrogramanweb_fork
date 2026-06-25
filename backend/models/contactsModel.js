@@ -28,11 +28,11 @@ const [{insertId}] = await db.query(
   return insertId;
 }
 
-//mengupdate data
-const update = async ({customer_id, name, email, phone, position}, id) => {
+// MENGUPDATE DATA (Perhatikan posisinya: id dulu, baru datanya)
+const update = async (id, {customer_id, name, email, phone, position}) => {
     const [{affectedRows}] = await db.query(
         `UPDATE contacts SET customer_id = ?, name=?, email=?, phone=?, position=?  WHERE id=?`,
-        [customer_id  ?? null, name ?? null, email ?? null, phone ?? null, position ?? null, id]
+        [customer_id ?? null, name ?? null, email ?? null, phone ?? null, position ?? null, id]
     );
     return affectedRows;
 }

@@ -10,8 +10,8 @@ import { ApiService } from '../../services/api';
   templateUrl: './contacts.html'
 })
 export class Contacts implements OnInit {
-  // 1. PASTIKAN ARRAY INI ADA
   contacts: any[] = [];
+  customersList: any[] = [];
   isLoading: boolean = true;
   errorMessage: string = '';
 
@@ -30,9 +30,20 @@ export class Contacts implements OnInit {
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.loadContacts();
+      this.loadCustomersList();
     } else {
       this.isLoading = false;
     }
+  }
+
+  loadCustomersList() {
+    this.api.getCustomers().subscribe({
+      next: (res) => {
+        this.customersList = Array.isArray(res) ? res : (res.data || []);
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error("Gagal memuat list customer", err)
+    });
   }
 
   loadContacts() {
@@ -73,15 +84,32 @@ export class Contacts implements OnInit {
   }
 
   saveEditContact() {
-    if (!this.editContactData.name) { alert("Nama wajib diisi!"); return; }
+    if (!this.editContactData.name) { alert("Nama Kontak wajib diisi!"); return; }
+    if (!this.editContactData.customer_id) { alert("Customer wajib dipilih!"); return; }
+
+    // SOLUSI: Bersihkan payload, hanya kirim kolom asli tabel contacts
+    const payload = {
+      id: this.editContactData.id,
+      customer_id: Number(this.editContactData.customer_id),
+      name: this.editContactData.name,
+      email: this.editContactData.email,
+      phone: this.editContactData.phone,
+      position: this.editContactData.position
+    };
+
     this.isUpdating = true;
-    this.api.updateContact(this.editContactData.id, this.editContactData).subscribe({
+    this.api.updateContact(this.editContactData.id, payload).subscribe({
       next: () => {
         this.loadContacts();
         this.isUpdating = false;
         this.closeModal('editContactModal');
       },
-      error: () => { alert("Gagal mengubah data!"); this.isUpdating = false; this.cdr.detectChanges(); }
+      error: (err) => {
+        console.error(err);
+        alert("Gagal mengubah data kontak!");
+        this.isUpdating = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 

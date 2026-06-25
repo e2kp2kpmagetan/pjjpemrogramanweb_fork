@@ -2,9 +2,11 @@
 
 ## 📌 Deskripsi Proyek
 
-CRM Latihan PJJ Pemrograman Web adalah aplikasi **Customer Relationship Management (CRM)** berbasis web yang dikembangkan sebagai proyek PJJ Pemrograman Web. Sistem ini dapat membantu perusahaan dalam mengelola data pelanggan, prospek bisnis, aktivitas penjualan, dan kontak pelanggan secara terpusat.
+CRM Latihan PJJ Pemrograman Web adalah aplikasi **Customer Relationship Management (CRM)** berbasis web yang dikembangkan sebagai proyek PJJ Pemrograman Web. Sistem ini membantu perusahaan dalam mengelola data pelanggan, prospek bisnis, peluang penjualan, aktivitas, kontak pelanggan, dan pengguna secara terpusat.
 
 Aplikasi ini menerapkan **Role-Based Access Control (RBAC)** sehingga setiap pengguna memiliki hak akses sesuai dengan perannya, seperti Admin, Sales, dan Staff.
+
+Frontend aplikasi dibangun menggunakan **Angular** dengan antarmuka berbasis template **SB Admin** (tema gelap/black sidebar) sehingga memberikan tampilan dashboard yang modern, responsif, dan mudah digunakan.
 
 ---
 
@@ -23,7 +25,14 @@ Aplikasi ini menerapkan **Role-Based Access Control (RBAC)** sehingga setiap pen
 * Menentukan PIC (Person In Charge)
 * Memantau status prospek
 
-### 3. Manajemen Activities
+### 3. Manajemen Deals
+
+* Mengelola peluang penjualan (sales opportunities)
+* Menghubungkan deal dengan customer dan lead
+* Memantau progress deal
+* Mengelola nilai transaksi dan status deal
+
+### 4. Manajemen Activities
 
 * Mencatat aktivitas harian
 * Jenis aktivitas:
@@ -33,29 +42,27 @@ Aplikasi ini menerapkan **Role-Based Access Control (RBAC)** sehingga setiap pen
   * Email
   * Follow Up
 
-### 4. Manajemen Contacts
+### 5. Manajemen Contacts
 
 * Menyimpan kontak pelanggan
 * Menghubungkan kontak dengan customer terkait
 
-### 5. Manajemen Users
+### 6. Manajemen Users
 
 * Khusus Admin
 * Menambah pengguna baru
 * Mengubah role pengguna
 * Menghapus akun pengguna
 
-### 6. Role-Based Access Control
+### 7. Role-Based Access Control (RBAC)
 
-Sistem membedakan hak akses berdasarkan role:
+| Role  | Hak Akses                                                  |
+| ----- | ---------------------------------------------------------- |
+| Admin | Akses penuh ke seluruh sistem                              |
+| Sales | Mengelola customer, leads, deals, activities, dan contacts |
+| Staff | Akses terbatas sesuai tugas yang diberikan                 |
 
-| Role  | Hak Akses                                           |
-| ----- | --------------------------------------------------- |
-| Admin | Akses penuh ke seluruh sistem                       |
-| Sales | Mengelola customer, leads, activities, dan contacts |
-| Staff | Akses terbatas sesuai tugas yang diberikan          |
-
-### 7. JWT Authentication
+### 8. JWT Authentication
 
 * Login menggunakan JSON Web Token (JWT)
 * Identitas pengguna disimpan secara aman
@@ -68,14 +75,18 @@ Sistem membedakan hak akses berdasarkan role:
 ### Backend
 
 * Node.js
+* Express.js
 * MySQL
 * JWT Authentication
+* Bcrypt
 
 ### Frontend
 
-* HTML5
-* CSS3
-* JavaScript
+* Angular
+* TypeScript
+* Bootstrap 5
+* SB Admin Template
+* Font Awesome
 
 ### Database
 
@@ -85,7 +96,7 @@ Sistem membedakan hak akses berdasarkan role:
 
 ## 📂 Struktur Proyek
 
-```
+```text
 pjjpemrogramanweb/
 │
 ├── backend/
@@ -94,11 +105,12 @@ pjjpemrogramanweb/
 │   ├── middleware/
 │   ├── models/
 │   ├── routes/
-│   ├── frontend/
-│   │   ├── css/
-│   │   ├── js/
-│   │   ├── index.html
-│   │   └── login.html
+│   ├── frontend-angular/
+│   │   ├── src/
+│   │   ├── public/
+│   │   ├── angular.json
+│   │   ├── package.json
+│   │   └── ...
 │   │
 │   ├── .env
 │   ├── package.json
@@ -114,105 +126,37 @@ pjjpemrogramanweb/
 * **middleware/** → Middleware autentikasi dan otorisasi.
 * **models/** → Interaksi dengan database.
 * **routes/** → Routing API backend.
-* **frontend/** → Tampilan aplikasi berbasis HTML, CSS, dan JavaScript.
+* **frontend-angular/** → Frontend aplikasi berbasis Angular dan SB Admin Template.
 
-  * **css/** → File stylesheet.
-  * **js/** → File JavaScript frontend.
-  * **index.html** → Dashboard utama aplikasi.
-  * **login.html** → Halaman login pengguna.
+  * **src/** → Source code Angular.
+  * **public/** → Asset publik aplikasi.
+  * **angular.json** → Konfigurasi Angular.
 * **app.js** → Entry point aplikasi backend.
 * **.env** → Konfigurasi environment dan database.
 
----
-
-## ⚙️ Instalasi dan Menjalankan Proyek
-
-### 1. Clone Repository
-
-```bash
-git clone https://github.com/dorkray/pjjpemrogramanweb.git
+```
 ```
 
-### 2. Masuk ke Folder Project
-
-```bash
-cd pjjpemrogramanweb
-```
-
-### 3. Install Dependencies
-
-```bash
-npm install
-```
-
-### 4. Konfigurasi Environment
-
-Buat file `.env` di folder backend CONTOH:
-
-```env
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=crm_db
-
-JWT_SECRET=your_secret_key
-PORT=5000
-```
-
-### 5. Jalankan Backend
-
-```bash
-npm start
-```
-
-atau
-
-```bash
-node server.js
-```
-
-### 6. Jalankan Frontend
-
-Buka file:
-
-```text
-frontend/index.html
-```
-
-menggunakan browser atau Live Server.
 
 ---
 
-## 🔐 Akun Pengguna
+## 🎨 Tampilan Aplikasi
 
-CONTOH akun untuk pengujian:
+Aplikasi menggunakan template **SB Admin** dengan desain dashboard profesional yang terdiri dari:
 
-### Admin
-
-```text
-Email    : admin@example.com
-Password : admin123
-```
-
-### Sales
-
-```text
-Email    : sales@example.com
-Password : sales123
-```
-
-### Staff
-
-```text
-Email    : staff@example.com
-Password : staff123
-```
-
-> Sesuaikan dengan data yang tersedia pada database Anda.
+* Sidebar navigasi berwarna hitam (dark theme)
+* Dashboard responsif
+* Tabel data terintegrasi
+* Form CRUD modern
+* Navigasi berbasis role pengguna
 
 ---
 
 ## 📊 Modul Sistem
+
+### Dashboard
+
+Menampilkan ringkasan data CRM dan statistik utama.
 
 ### Customers
 
@@ -221,6 +165,10 @@ Mengelola data pelanggan dan perusahaan.
 ### Leads
 
 Mengelola prospek bisnis serta penugasan PIC.
+
+### Deals
+
+Mengelola peluang penjualan, nilai transaksi, dan status closing.
 
 ### Activities
 
@@ -236,18 +184,6 @@ Mengelola akun pengguna dalam sistem (Admin Only).
 
 ---
 
-## 👨‍💻 Kelompok 5 PJJ Pemrograman Web
-
-* Aditya Setya Ramadhani
-* Dodik Pratama
-* Leonardus Dian Christian
-* Rajasa Narottama
-* Tatas Saputra
-* Yulia Islamiati
-* Muhammadiluddin Akbar
-
----
-
 ## 🎯 Tujuan Proyek
 
 Proyek ini dibuat untuk:
@@ -255,11 +191,10 @@ Proyek ini dibuat untuk:
 * Memenuhi tugas PJJ Pemrograman Web.
 * Menerapkan konsep CRUD pada aplikasi web.
 * Mengimplementasikan autentikasi JWT.
-* Menggunakan Role-Based Access Control (RBAC).
-* Mengintegrasikan frontend, backend, dan database dalam satu sistem.
+* Mengimplementasikan Role-Based Access Control (RBAC).
+* Mengembangkan frontend modern menggunakan Angular.
+* Mengintegrasikan frontend, backend, dan database dalam satu sistem CRM.
+* Menerapkan konsep pengelolaan customer relationship dalam lingkungan bisnis.
 
----
-
-## 📄 Lisensi
-
-Proyek ini dibuat untuk kebutuhan akademik dan pembelajaran.
+```
+```

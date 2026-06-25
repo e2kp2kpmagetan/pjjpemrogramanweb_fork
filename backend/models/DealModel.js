@@ -1,7 +1,8 @@
-// models/dealModel.js
-
 const db = require('../config/database');
 
+// =================================================================
+// 1. FUNGSI CRUD STANDAR UNTUK HALAMAN DEALS
+// =================================================================
 const findAll = async () => {
     const [rows] = await db.query(`
         SELECT d.*, l.title AS lead_title 
@@ -29,6 +30,33 @@ const findById = async (id) => {
   );
   return rows[0] ?? null;
 };
+
+const store = async ({ lead_id, title, value, stage, closed_at }) => {
+    const dateClosed = closed_at ? closed_at : null; 
+    const [{ insertId }] = await db.query(
+        `INSERT INTO deals (lead_id, title, value, stage, closed_at) VALUES (?, ?, ?, ?, ?)`,
+        [lead_id ?? null, title ?? null, value ?? null, stage ?? 'Proposal', dateClosed]
+    );
+    return insertId;
+}
+
+const update = async (id, { lead_id, title, value, stage, closed_at }) => {
+    const dateClosed = closed_at ? closed_at : null;
+    const [{ affectedRows }] = await db.query(
+        `UPDATE deals SET lead_id=?, title=?, value=?, stage=?, closed_at=? WHERE id=?`,
+        [lead_id ?? null, title ?? null, value ?? null, stage ?? null, dateClosed, id]
+    );
+    return affectedRows;
+};
+
+const destroy = async (id) => {
+    const [{ affectedRows }] = await db.query(`DELETE FROM deals WHERE id=?`, [id]);
+    return affectedRows;
+};
+
+// =================================================================
+// 2. FUNGSI KHUSUS TRIGGER DARI LEADS (PENYEBAB ERROR TADI)
+// =================================================================
 const createFormLead = async (leadId, title, stage) => {
   const [{insertId}] = await db.query(
     `INSERT INTO deals (lead_id, title, stage) VALUES (?,?,?)`,
@@ -39,14 +67,19 @@ const createFormLead = async (leadId, title, stage) => {
 
 const updateStageByLeadId = async (leadId, stage, value = null) => {
   await db.query(
-    `UPDATE deals SET stage=?, value=? WHERE lead_id=?`,
-    [stage ??null, value, leadId]
+    `UPDATE deals SET stage=? WHERE lead_id=?`,
+    [stage ?? null, leadId]
   );
 };
 
-const removeByLeadId = async (leadId) =>{
+const removeByLeadId = async (leadId) => {
   await db.query(`DELETE FROM deals WHERE lead_id =?`, [leadId]);
 };
 
-
-module.exports = { findAll, findById , createFormLead, updateStageByLeadId, removeByLeadId};
+// =================================================================
+// 3. EXPORT SEMUA FUNGSI AGAR BISA DIBACA CONTROLLER
+// =================================================================
+module.exports = { 
+  findAll, findById, store, update, destroy, 
+  createFormLead, updateStageByLeadId, removeByLeadId 
+};

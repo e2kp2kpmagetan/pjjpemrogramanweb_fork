@@ -36,4 +36,10 @@ export class App implements OnInit {
     }
   }
 
+  toggleSidebar(event: Event) {
+    event.preventDefault(); // Mencegah halaman refresh
+    if (typeof document !== 'undefined') {
+      document.body.classList.toggle('sb-sidenav-toggled');
+    }
+  }
 }

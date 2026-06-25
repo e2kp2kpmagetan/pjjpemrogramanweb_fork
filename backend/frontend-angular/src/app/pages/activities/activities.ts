@@ -11,11 +11,12 @@ import { ApiService } from '../../services/api';
 })
 export class Activities implements OnInit {
   activities: any[] = [];
+  customersList: any[] = [];
   isLoading: boolean = true;
   errorMessage: string = '';
 
-  newActivity = { customer_id: null, type: 'Call', description: '', activity_date: '', created_by: 1 };
-  editActivityData: any = { id: null, customer_id: null, type: '', description: '', activity_date: '', created_by: 1 };
+  newActivity: any = { customer_id: null, type: 'Call', description: '', activity_date: ''};
+  editActivityData: any = { id: null, customer_id: null, type: '', description: '', activity_date: ''};
   
   isSaving: boolean = false;
   isUpdating: boolean = false;
@@ -29,9 +30,37 @@ export class Activities implements OnInit {
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.loadActivities();
+      this.loadCustomersList();
     } else {
       this.isLoading = false;
     }
+  }
+
+  loadCustomersList() {
+    this.api.getCustomers().subscribe({
+      next: (res) => {
+        this.customersList = Array.isArray(res) ? res : (res.data || []);
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error("Gagal memuat list customer", err)
+    });
+  }
+
+  // Fungsi untuk mengekstrak ID dari Token JWT
+  getCurrentUserId(): number {
+    if (isPlatformBrowser(this.platformId)) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          // JWT terdiri dari 3 bagian dipisah titik. Bagian ke-2 adalah payload (data diri)
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          return payload.id || payload.userId || 1; // Ambil ID, jika gagal fallback ke 1
+        } catch (e) {
+          console.error("Gagal membaca token", e);
+        }
+      }
+    }
+    return 1; // Fallback jika tidak login
   }
 
   loadActivities() {
@@ -52,15 +81,22 @@ export class Activities implements OnInit {
   }
 
  saveActivity() {
-    // Ubah validasi: karena Activity tidak punya name, kita cek type atau hapus saja validasinya
-    if (!this.newActivity.type) { alert("Tipe aktivitas wajib diisi!"); return; }
+    if (!this.newActivity.type) { alert("Tipe Aktivitas wajib dipilih!"); return; }
+    if (!this.newActivity.customer_id) { alert("ID Customer wajib diisi!"); return; }
+
+    this.newActivity.customer_id = Number(this.newActivity.customer_id);
     
+    // =========================================================
+    // DI SINI TEMPATNYA! Kita suntikkan ID-nya sesaat sebelum disave
+    this.newActivity.created_by = this.getCurrentUserId(); 
+    // =========================================================
+
     this.isSaving = true;
     this.api.createActivity(this.newActivity).subscribe({
       next: () => {
-        this.loadActivities(); // Pastikan namanya loadActivities
-        // Ubah reset form: pastikan isinya sesuai dengan struktur Activity
-        this.newActivity = { customer_id: null, type: 'Call', description: '', activity_date: '', created_by: 1 };
+        this.loadActivities();
+        // Saat reset form, boleh dibiarkan kosong dulu atau pakai angka 1 sementara
+        this.newActivity = { customer_id: null, type: 'Call', description: '', activity_date: '' };
         this.isSaving = false;
         this.closeModal('addActivityModal');
       },
@@ -75,15 +111,21 @@ export class Activities implements OnInit {
   }
 
   saveEditActivity() {
-    if (!this.editActivityData.type) { alert("Tipe aktivitas wajib diisi!"); return; }
+    if (!this.editActivityData.type) { alert("Tipe wajib diisi!"); return; }
+    if (!this.editActivityData.customer_id) { alert("Customer wajib dipilih!"); return; }
+
+    const payload = {
+      customer_id: Number(this.editActivityData.customer_id),
+      type: this.editActivityData.type,
+      description: this.editActivityData.description,
+      activity_date: this.editActivityData.activity_date,
+      created_by: Number(this.editActivityData.created_by || 1)
+    };
+
     this.isUpdating = true;
-    this.api.updateActivity(this.editActivityData.id, this.editActivityData).subscribe({
-      next: () => {
-        this.loadActivities();
-        this.isUpdating = false;
-        this.closeModal('editActivityModal');
-      },
-      error: () => { alert("Gagal mengubah data!"); this.isUpdating = false; this.cdr.detectChanges(); }
+    this.api.updateActivity(this.editActivityData.id, payload).subscribe({
+      next: () => { this.loadActivities(); this.isUpdating = false; this.closeModal('editActivityModal'); },
+      error: (err) => { console.error(err); this.isUpdating = false; this.cdr.detectChanges(); }
     });
   }
 

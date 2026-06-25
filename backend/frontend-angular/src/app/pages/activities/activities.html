@@ -23,27 +23,30 @@
                         <thead class="table-dark">
                             <tr>
                                 <th>ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
+                                <th>Customer ID</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Activity Date</th>
+                                <th>Created By</th>
                                 <th class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @for (item of activities; track item.id) {
                                 <tr>
-                                    <td>#{{ item.id }}</td>
-                                    <td>Cust ID: {{ item.customer_id }}</td>
+                                    <td>{{ item.id }}</td>
+                                    <td>{{ item.customer_id }}</td>
                                     <td><span class="badge bg-secondary">{{ item.type }}</span></td>
                                     <td>{{ item.description }}</td>
-                                    <td>{{ item.activity_date | date:'medium' }}</td>
+                                    <td>{{ item.activity_date | date:'dd/MM/yyyy HH:mm' }}</td>
+                                    <td>{{ item.created_by }}</td>
                                     <td class="text-center">
                                         <button class="btn btn-sm btn-primary me-2" (click)="openEditModal(item)"><i class="fas fa-edit"></i></button>
                                         <button class="btn btn-sm btn-danger" (click)="deleteActivity(item.id, 'Aktivitas ID '+item.id)"><i class="fas fa-trash"></i></button>
                                     </td>
                                 </tr>
                             } @empty {
-                                <tr><td colspan="6" class="text-center py-4">Data kosong.</td></tr>
+                                <tr><td colspan="7" class="text-center py-4">Data kosong.</td></tr>
                             }
                         </tbody>
                     </table>
@@ -58,18 +61,26 @@
     <div class="modal-content">
       <div class="modal-header"><h5 class="modal-title">Tambah activity</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <div class="mb-3"><label>ID Customer Terkait</label><input type="number" class="form-control" [(ngModel)]="newActivity.customer_id"></div>
         <div class="mb-3">
-            <label>Tipe Aktivitas</label>
-            <select class="form-select" [(ngModel)]="newActivity.type">
-                <option value="Call">Call</option>
-                <option value="Email">Email</option>
-                <option value="Meeting">Meeting</option>
-                <option value="Note">Note</option>
-            </select>
-        </div>
-        <div class="mb-3"><label>Deskripsi</label><textarea class="form-control" [(ngModel)]="newActivity.description" rows="3"></textarea></div>
-        <div class="mb-3"><label>Tanggal Aktivitas</label><input type="datetime-local" class="form-control" [(ngModel)]="newActivity.activity_date"></div>
+                <label class="form-label">Pilih Customer <span class="text-danger">*</span></label>
+                <select class="form-select" [(ngModel)]="newActivity.customer_id">
+                    <option [ngValue]="null" disabled selected>-- Pilih Customer --</option>
+                    @for (cust of customersList; track cust.id) {
+                        <option [ngValue]="cust.id">{{ cust.name }}</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Type (Enum)</label>
+                <select class="form-select" [(ngModel)]="newActivity.type">
+                    <option value="Call">Call</option>
+                    <option value="Email">Email</option>
+                    <option value="Meeting">Meeting</option>
+                    <option value="Note">Note</option>
+                </select>
+            </div>
+            <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" [(ngModel)]="newActivity.description" rows="3"></textarea></div>
+            <div class="mb-3"><label class="form-label">Activity Date</label><input type="datetime-local" class="form-control" [(ngModel)]="newActivity.activity_date"></div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -84,18 +95,26 @@
     <div class="modal-content">
       <div class="modal-header"><h5 class="modal-title">Edit activity</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <div class="mb-3"><label>ID Customer Terkait</label><input type="number" class="form-control" [(ngModel)]="newActivity.customer_id"></div>
         <div class="mb-3">
-            <label>Tipe Aktivitas</label>
-            <select class="form-select" [(ngModel)]="newActivity.type">
-                <option value="Call">Call</option>
-                <option value="Email">Email</option>
-                <option value="Meeting">Meeting</option>
-                <option value="Note">Note</option>
+            <label class="form-label">Pilih Customer <span class="text-danger">*</span></label>
+            <select class="form-select" [(ngModel)]="editActivityData.customer_id">
+                <option [ngValue]="null" disabled selected>-- Pilih Customer --</option>
+                @for (cust of customersList; track cust.id) {
+                    <option [ngValue]="cust.id">{{ cust.name }}</option>
+                }
             </select>
         </div>
-        <div class="mb-3"><label>Deskripsi</label><textarea class="form-control" [(ngModel)]="newActivity.description" rows="3"></textarea></div>
-        <div class="mb-3"><label>Tanggal Aktivitas</label><input type="datetime-local" class="form-control" [(ngModel)]="newActivity.activity_date"></div>
+            <div class="mb-3">
+                <label class="form-label">Type (Enum)</label>
+                <select class="form-select" [(ngModel)]="editActivityData.type">
+                    <option value="Call">Call</option>
+                    <option value="Email">Email</option>
+                    <option value="Meeting">Meeting</option>
+                    <option value="Note">Note</option>
+                </select>
+            </div>
+            <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" [(ngModel)]="editActivityData.description" rows="3"></textarea></div>
+            <div class="mb-3"><label class="form-label">Activity Date</label><input type="datetime-local" class="form-control" [(ngModel)]="editActivityData.activity_date"></div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
