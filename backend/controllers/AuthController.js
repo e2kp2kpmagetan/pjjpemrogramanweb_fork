@@ -26,10 +26,14 @@ class AuthController {
         }
 
             const token = jwt.sign(
-                { id: user.id, role: user.role }, 
-                process.env.JWT_SECRET || 'rahasia_super_aman', 
-                { expiresIn: '1d' }
-            );
+                    { 
+                        id: user.id, 
+                        role: user.role, 
+                        name: user.name
+                    }, 
+                    process.env.JWT_SECRET, 
+                    { expiresIn: '24h' }
+                );
 
             res.json({ success: true, token, user: { id: user.id, name: user.name, role: user.role } });
         } catch (err) {

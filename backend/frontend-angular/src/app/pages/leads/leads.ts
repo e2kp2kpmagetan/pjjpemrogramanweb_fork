@@ -29,11 +29,15 @@ export class Leads implements OnInit {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
+  userRole: string = '';
   ngOnInit() {
+    this.userRole = this.api.getUserRole();
     if (isPlatformBrowser(this.platformId)) {
       this.loadLeads();
       this.loadCustomersList();
+      if (this.userRole === 'admin' || this.userRole === 'sales') {
       this.loadUsersList();
+      }
     } else {
       this.isLoading = false;
     }

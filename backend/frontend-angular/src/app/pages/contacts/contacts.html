@@ -13,9 +13,11 @@
         <div class="card mb-4 shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div><i class="fas fa-bullseye me-1"></i> Daftar Contacts</div>
+                @if (userRole === 'admin' || userRole === 'sales') {
                 <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addContactModal">
                     <i class="fas fa-plus"></i> Tambah Contact
                 </button>
+                }
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -43,8 +45,12 @@
                                     <td><span class="badge bg-info text-dark">{{ item.position }}</span></td>
                                     <td>{{ item.created_at | date:'dd/MM/yyyy' }}</td>
                                     <td class="text-center">
+                                        @if (userRole === 'admin' || userRole === 'sales') {
                                         <button class="btn btn-sm btn-primary me-2" (click)="openEditModal(item)"><i class="fas fa-edit"></i></button>
+                                        }
+                                        @if (userRole === 'admin') {
                                         <button class="btn btn-sm btn-danger" (click)="deleteContact(item.id, item.name)"><i class="fas fa-trash"></i></button>
+                                        }
                                     </td>
                                 </tr>
                             } @empty {
@@ -74,7 +80,19 @@
         </div>
         <div class="mb-3"><label class="form-label">Nama</label><input type="text" class="form-control" [(ngModel)]="newContact.name"></div>
         <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" [(ngModel)]="newContact.email"></div>
-        <div class="mb-3"><label class="form-label">Telepon</label><input type="text" class="form-control" [(ngModel)]="newContact.phone"></div>
+        <div class="mb-3">
+            <label for="phone" class="form-label">Phone Number</label>
+            
+            <input 
+                type="tel" 
+                class="form-control" 
+                id="phone" 
+                [(ngModel)]="newContact.phone" 
+                name="phone" 
+                pattern="[0-9]+" 
+                title="Please enter numbers only"
+                required>
+        </div>
         <div class="mb-3"><label class="form-label">Position / Jabatan</label><input type="text" class="form-control" [(ngModel)]="newContact.position"></div>
       </div>
       <div class="modal-footer">
@@ -101,7 +119,19 @@
         </div>
         <div class="mb-3"><label class="form-label">Nama</label><input type="text" class="form-control" [(ngModel)]="editContactData.name"></div>
         <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" [(ngModel)]="editContactData.email"></div>
-        <div class="mb-3"><label class="form-label">Telepon</label><input type="text" class="form-control" [(ngModel)]="editContactData.phone"></div>
+        <div class="mb-3">
+            <label for="phone" class="form-label">Phone Number</label>
+            
+            <input 
+                type="tel" 
+                class="form-control" 
+                id="phone" 
+                [(ngModel)]="editContactData.phone" 
+                name="phone" 
+                pattern="[0-9]+" 
+                title="Please enter numbers only"
+                required>
+        </div>
         <div class="mb-3"><label class="form-label">Position / Jabatan</label><input type="text" class="form-control" [(ngModel)]="editContactData.position"></div>
       </div>
       <div class="modal-footer">

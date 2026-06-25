@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angu
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-contacts',
@@ -15,7 +16,7 @@ export class Contacts implements OnInit {
   isLoading: boolean = true;
   errorMessage: string = '';
 
-  newContact = { customer_id: null, name: '', email: '', phone: '', position: '' };
+  newContact: any = { customer_id: null, name: '', email: '', phone: '', position: '' };
   editContactData: any = { id: null, customer_id: null, name: '', email: '', phone: '', position: '' };
   
   isSaving: boolean = false;
@@ -27,7 +28,9 @@ export class Contacts implements OnInit {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
+  userRole: string = '';
   ngOnInit() {
+    this.userRole = this.api.getUserRole();
     if (isPlatformBrowser(this.platformId)) {
       this.loadContacts();
       this.loadCustomersList();
@@ -64,16 +67,35 @@ export class Contacts implements OnInit {
   }
 
   saveContact() {
-    if (!this.newContact.name) { alert("Nama wajib diisi!"); return; }
+    // 1. Validasi Nomor Telepon (Hanya Angka)
+    const phoneRegex = /^[0-9]+$/;
+    if (this.newContact.phone && !phoneRegex.test(this.newContact.phone)) {
+      Swal.fire({ icon: 'error', title: 'Format Salah', text: 'Nomor telepon Kontak HANYA boleh berisi angka!' });
+      return;
+    }
+
+    // 2. Validasi Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (this.newContact.email && !emailRegex.test(this.newContact.email)) {
+      Swal.fire({ icon: 'error', title: 'Format Salah', text: 'Format email tidak valid!' });
+      return;
+    }
+
+    if (!this.newContact.name) { 
+      Swal.fire({ icon: 'error', title: 'Oops...', text: 'Nama Kontak wajib diisi!' });
+      return; 
+    }
+    this.newContact.customer_id = Number(this.newContact.customer_id);
     this.isSaving = true;
     this.api.createContact(this.newContact).subscribe({
       next: () => {
         this.loadContacts();
-        this.newContact = { customer_id: null, name: '', email: '', phone: '', position: '' };
         this.isSaving = false;
         this.closeModal('addContactModal');
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Kontak baru berhasil disimpan.', timer: 1500, showConfirmButton: false });
+        this.newContact = { customer_id: null, name: '', email: '', phone: '', position: '' };
       },
-      error: () => { alert("Gagal menyimpan data!"); this.isSaving = false; this.cdr.detectChanges(); }
+      error: () => { this.isSaving = false; this.cdr.detectChanges(); Swal.fire('Gagal', 'Gagal menyimpan data kontak.', 'error'); }
     });
   }
 
@@ -84,10 +106,24 @@ export class Contacts implements OnInit {
   }
 
   saveEditContact() {
-    if (!this.editContactData.name) { alert("Nama Kontak wajib diisi!"); return; }
-    if (!this.editContactData.customer_id) { alert("Customer wajib dipilih!"); return; }
+    // 1. Validasi Nomor Telepon (Hanya Angka)
+    const phoneRegex = /^[0-9]+$/;
+    if (this.editContactData.phone && !phoneRegex.test(this.editContactData.phone)) {
+      Swal.fire({ icon: 'error', title: 'Format Salah', text: 'Nomor telepon Kontak HANYA boleh berisi angka!' });
+      return;
+    }
 
-    // SOLUSI: Bersihkan payload, hanya kirim kolom asli tabel contacts
+    // 2. Validasi Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (this.editContactData.email && !emailRegex.test(this.editContactData.email)) {
+      Swal.fire({ icon: 'error', title: 'Format Salah', text: 'Format email tidak valid!' });
+      return;
+    }
+
+    if (!this.editContactData.name) {
+      Swal.fire({ icon: 'error', title: 'Oops...', text: 'Nama tidak boleh kosong!' });
+      return;
+    }
     const payload = {
       id: this.editContactData.id,
       customer_id: Number(this.editContactData.customer_id),
@@ -96,30 +132,34 @@ export class Contacts implements OnInit {
       phone: this.editContactData.phone,
       position: this.editContactData.position
     };
-
     this.isUpdating = true;
     this.api.updateContact(this.editContactData.id, payload).subscribe({
       next: () => {
         this.loadContacts();
         this.isUpdating = false;
         this.closeModal('editContactModal');
+        Swal.fire({ icon: 'success', title: 'Diperbarui!', text: 'Data kontak berhasil diubah.', timer: 1500, showConfirmButton: false });
       },
-      error: (err) => {
-        console.error(err);
-        alert("Gagal mengubah data kontak!");
-        this.isUpdating = false;
-        this.cdr.detectChanges();
-      }
+      error: () => { this.isUpdating = false; this.cdr.detectChanges(); Swal.fire('Gagal', 'Gagal memperbarui kontak.', 'error'); }
     });
   }
 
   deleteContact(id: number, name: string) {
-    if (confirm(`Hapus kontak "${name}"?`)) {
-      this.api.deleteContact(id).subscribe({
-        next: () => this.loadContacts(),
-        error: () => alert('Gagal menghapus data.')
-      });
-    }
+    Swal.fire({
+      title: 'Yakin hapus?',
+      text: `Kontak "${name}" akan dihapus permanen!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Ya, hapus!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.api.deleteContact(id).subscribe({
+          next: () => { this.loadContacts(); Swal.fire('Terhapus!', 'Kontak telah dihapus.', 'success'); },
+          error: () => Swal.fire('Gagal!', 'Gagal menghapus data.', 'error')
+        });
+      }
+    });
   }
 
   closeModal(modalId: string) {

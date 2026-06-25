@@ -79,6 +79,43 @@ export class ApiService {
   updateUser(id: number, data: any): Observable<any> { return this.http.put(`${this.apiUrl}/users/${id}`, data); }
   deleteUser(id: number): Observable<any> { return this.http.delete(`${this.apiUrl}/users/${id}`); }
   
+  // Fungsi untuk mengambil Role dari Token
+  getUserRole(): string {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          return payload.role || 'staff'; // Ambil role, jika kosong anggap saja staff
+        } catch (e) {
+          return 'staff';
+        }
+      }
+    }
+    return 'staff';
+  }
+
+  // Fungsi untuk mengambil Nama dari Token
+  getUserName(): string {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          // 1. PASANG JEBAKAN DI CONSOLE UNTUK INTIP ISI TOKEN ASLI
+          console.log("=== ISI PAYLOAD TOKEN BACKEND ANDA ===", payload);
+          
+          // 2. SISTEM CADANGAN OTOMATIS: 
+          // Cek payload.name, kalau kosong cek payload.username, kalau kosong cek payload.nama, dst.
+          return payload.name || payload.username || payload.nama || payload.email || 'Pengguna';
+        } catch (e) {
+          return 'Pengguna';
+        }
+      }
+    }
+    return 'Pengguna';
+  }
+
   // Fungsi Logout (Aman dari SSR)
   logout() {
     if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {

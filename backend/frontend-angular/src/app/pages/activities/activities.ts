@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angu
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-Activities',
@@ -27,7 +28,9 @@ export class Activities implements OnInit {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
+  userRole: string = '';
   ngOnInit() {
+    this.userRole = this.api.getUserRole();
     if (isPlatformBrowser(this.platformId)) {
       this.loadActivities();
       this.loadCustomersList();
@@ -68,9 +71,13 @@ export class Activities implements OnInit {
     this.api.getActivities().subscribe({
       next: (res) => {
         let rawData = Array.isArray(res) ? res : (res.data || []);
-        this.activities = rawData.sort((a: any, b: any) => a.id - b.id);
+        
+        // TRIK 1: Gunakan kurung siku dan titik tiga [...] (Spread Operator)
+        // Ini memaksa Angular membuat "Array Baru", sehingga tabel otomatis di-refresh!
+        this.activities = [...rawData.sort((a: any, b: any) => a.id - b.id)];
+        
         this.isLoading = false;
-        this.cdr.detectChanges();
+        this.cdr.detectChanges(); // Bangunkan HTML
       },
       error: (err) => {
         this.errorMessage = "Gagal memuat data Activities.";
@@ -81,40 +88,52 @@ export class Activities implements OnInit {
   }
 
  saveActivity() {
-    if (!this.newActivity.type) { alert("Tipe Aktivitas wajib dipilih!"); return; }
-    if (!this.newActivity.customer_id) { alert("ID Customer wajib diisi!"); return; }
+    if (!this.newActivity.type || !this.newActivity.customer_id) { 
+      Swal.fire({ icon: 'error', title: 'Oops...', text: 'Tipe Aktivitas dan Customer wajib diisi!' });
+      return; 
+    }
 
     this.newActivity.customer_id = Number(this.newActivity.customer_id);
-    
-    // =========================================================
-    // DI SINI TEMPATNYA! Kita suntikkan ID-nya sesaat sebelum disave
-    this.newActivity.created_by = this.getCurrentUserId(); 
-    // =========================================================
+    this.newActivity.created_by = this.getCurrentUserId(); // Auto-fill ID Login
 
     this.isSaving = true;
     this.api.createActivity(this.newActivity).subscribe({
       next: () => {
         this.loadActivities();
-        // Saat reset form, boleh dibiarkan kosong dulu atau pakai angka 1 sementara
-        this.newActivity = { customer_id: null, type: 'Call', description: '', activity_date: '' };
         this.isSaving = false;
         this.closeModal('addActivityModal');
+        
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Aktivitas baru telah dicatat.', timer: 1500, showConfirmButton: false });
+        
+        // Reset Form
+        this.newActivity = { customer_id: null, type: 'Call', description: '', activity_date: '', created_by: this.getCurrentUserId() };
       },
-      error: () => { alert("Gagal menyimpan data!"); this.isSaving = false; this.cdr.detectChanges(); }
+      error: () => { 
+        this.isSaving = false; this.cdr.detectChanges(); 
+        Swal.fire('Gagal', 'Gagal menyimpan data aktivitas.', 'error'); 
+      }
     });
   }
 
-  openEditModal(Activity: any) {
-    this.editActivityData = { ...Activity };
-    const modalElement = document.getElementById('editActivityModal');
-    if (modalElement) new (window as any).bootstrap.Modal(modalElement).show();
+  openEditModal(item: any) {
+    // TAMBAHKAN BARIS INI UNTUK NGETES:
+    console.log("TOMBOL EDIT BERHASIL DIKLIK! Data yang dibawa:", item);
+
+    this.editActivityData = { ...item };
+    if (this.editActivityData.activity_date) {
+      this.editActivityData.activity_date = this.editActivityData.activity_date.slice(0, 16);
+    }
+    this.openModal('editActivityModal');
   }
 
   saveEditActivity() {
-    if (!this.editActivityData.type) { alert("Tipe wajib diisi!"); return; }
-    if (!this.editActivityData.customer_id) { alert("Customer wajib dipilih!"); return; }
+    if (!this.editActivityData.type || !this.editActivityData.customer_id) {
+      Swal.fire({ icon: 'error', title: 'Oops...', text: 'Tipe Aktivitas dan Customer tidak boleh kosong!' });
+      return;
+    }
 
     const payload = {
+      id: this.editActivityData.id,
       customer_id: Number(this.editActivityData.customer_id),
       type: this.editActivityData.type,
       description: this.editActivityData.description,
@@ -124,17 +143,71 @@ export class Activities implements OnInit {
 
     this.isUpdating = true;
     this.api.updateActivity(this.editActivityData.id, payload).subscribe({
-      next: () => { this.loadActivities(); this.isUpdating = false; this.closeModal('editActivityModal'); },
-      error: (err) => { console.error(err); this.isUpdating = false; this.cdr.detectChanges(); }
+      next: () => {
+        // 1. Matikan loading & tutup modal
+        this.isUpdating = false;
+        this.closeModal('editActivityModal');
+        
+        // 2. Panggil ulang data dari database
+        this.loadActivities();
+        
+        // TRIK 2: Beritahu Angular bahwa form loading sudah selesai SEKARANG
+        this.cdr.detectChanges(); 
+        
+        // 3. Munculkan SweetAlert
+        Swal.fire({ 
+          icon: 'success', 
+          title: 'Diperbarui!', 
+          text: 'Data aktivitas berhasil diubah.', 
+          timer: 1500, 
+          showConfirmButton: false 
+        });
+      },
+      error: () => { 
+        this.isUpdating = false; 
+        this.cdr.detectChanges(); 
+        Swal.fire('Gagal', 'Gagal memperbarui aktivitas.', 'error'); 
+      }
     });
   }
 
-  deleteActivity(id: number, name: string) {
-    if (confirm(`Hapus Activity "${name}"?`)) {
-      this.api.deleteActivity(id).subscribe({
-        next: () => this.loadActivities(),
-        error: () => alert('Gagal menghapus data.')
-      });
+  deleteActivity(id: number, desc: string) {
+    Swal.fire({
+      title: 'Hapus Aktivitas?',
+      text: `Aktivitas "${desc}" akan dihapus permanen!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.api.deleteActivity(id).subscribe({
+          next: () => { 
+            this.loadActivities(); 
+            Swal.fire('Terhapus!', 'Catatan aktivitas telah dihapus.', 'success'); 
+          },
+          error: () => Swal.fire('Gagal!', 'Gagal menghapus data.', 'error')
+        });
+      }
+    });
+  }
+
+  // Fungsi untuk memunculkan pop-up Bootstrap via TypeScript
+ openModal(modalId: string) {
+    const modalElement = document.getElementById(modalId);
+    
+    if (modalElement) {
+      let modal = (window as any).bootstrap.Modal.getInstance(modalElement);
+      if (!modal) {
+        modal = new (window as any).bootstrap.Modal(modalElement);
+      }
+      modal.show();
+    } else {
+      // INI ALARM JIKA HTML TIDAK COCOK
+      console.error(`GAWAT! Modal dengan id="${modalId}" tidak ditemukan di HTML!`);
+      alert(`Error: ID Modal "${modalId}" tidak ada di file HTML Anda.`);
     }
   }
 

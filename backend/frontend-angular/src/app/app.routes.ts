@@ -3,6 +3,7 @@ import { authGuard } from './guards/auth.guard';
 import { Login } from './pages/login/login';
 
 // Import semua komponen yang sudah kita buat
+import { Dashboard } from './pages/dashboard/dashboard';
 import { Activities } from './pages/activities/activities';
 import { Contacts } from './pages/contacts/contacts';
 import { Customers } from './pages/customers/customers';
@@ -14,6 +15,7 @@ export const routes: Routes = [
   { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
   { path: 'auth/login', component: Login },
 
+  { path: 'dashboard', component: Dashboard },
   { path: 'activities', component: Activities, canActivate: [authGuard] },
   { path: 'contacts', component: Contacts, canActivate: [authGuard] },
   { path: 'customers', component: Customers, canActivate: [authGuard] },

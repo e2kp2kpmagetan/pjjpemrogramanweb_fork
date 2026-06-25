@@ -24,9 +24,13 @@ router.post("/auth/register", authController.register); // Tambahkan ini agar bi
 // RUTE TERPROTEKSI (Wajib Login & Opsional Admin)
 // ==========================================
 
-// --- 1. MANAJEMEN USERS (Hanya Admin) ---
-router.get("/users", verifyToken, requireAdmin, usersController.index);
-router.get("/users/:id", verifyToken, requireAdmin, usersController.show);
+// --- 1. MANAJEMEN USERS ---
+
+// GET (Lihat Data): Dibuka untuk semua yang sudah login (Admin & Sales) agar dropdown muncul
+router.get("/users", verifyToken, usersController.index);
+router.get("/users/:id", verifyToken, usersController.show);
+
+// POST, PUT, DELETE (Ubah Data): Kunci ganda! HANYA ADMIN yang boleh lewat!
 router.post("/users", verifyToken, requireAdmin, usersController.store);
 router.put("/users/:id", verifyToken, requireAdmin, usersController.update);
 router.delete("/users/:id", verifyToken, requireAdmin, usersController.delete);

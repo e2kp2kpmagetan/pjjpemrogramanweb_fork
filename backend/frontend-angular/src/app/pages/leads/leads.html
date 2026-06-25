@@ -13,9 +13,11 @@
         <div class="card mb-4 shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div><i class="fas fa-bullseye me-1"></i> Daftar Leads</div>
+                @if (userRole === 'admin' || userRole === 'sales') {
                 <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addLeadModal">
                     <i class="fas fa-plus"></i> Tambah Lead
                 </button>
+                }
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -45,8 +47,12 @@
                                     <td>{{ item.assigned_to }}</td>
                                     <td>{{ item.created_at | date:'dd/MM/yyyy' }}</td>
                                     <td class="text-center">
+                                        @if (userRole === 'admin' || userRole === 'sales') {
                                         <button class="btn btn-sm btn-primary me-2" (click)="openEditModal(item)"><i class="fas fa-edit"></i></button>
+                                        }
+                                        @if (userRole === 'admin') {
                                         <button class="btn btn-sm btn-danger" (click)="deleteLead(item.id, item.title)"><i class="fas fa-trash"></i></button>
+                                        }
                                     </td>
                                 </tr>
                             } @empty {
@@ -88,7 +94,7 @@
         </div>
         <div class="mb-3">
             <label class="form-label">Ditugaskan Kepada (Assigned To) <span class="text-danger">*</span></label>
-            <select class="form-select" [(ngModel)]="newLead.assigned_to">
+            <select class="form-select" [(ngModel)]="newLead.assigned_to" name="assigned_to">
                 <option [ngValue]="null" disabled selected>-- Pilih User / Staff --</option>
                 @for (user of usersList; track user.id) {
                     <option [ngValue]="user.id">{{ user.name }} ({{ user.role }})</option>

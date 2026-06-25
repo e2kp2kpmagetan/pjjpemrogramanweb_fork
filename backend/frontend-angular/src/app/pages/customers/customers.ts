@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angu
 import { isPlatformBrowser, CommonModule } from '@angular/common'; // Tambahkan isPlatformBrowser
 import { ApiService } from '../../services/api';
 import { FormsModule } from '@angular/forms';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-customers',
@@ -23,8 +24,9 @@ export class Customers implements OnInit {
     @Inject(PLATFORM_ID) private platformId: Object // <--- 1. Inject detektor Platform
   ) {}
 
+  userRole: string = '';
   ngOnInit() {
-    // 2. CEK: Apakah ini berjalan di Browser?
+    this.userRole = this.api.getUserRole();
     if (isPlatformBrowser(this.platformId)) {
       // Jika di browser, ambil data dari backend
       this.loadCustomers();
@@ -71,31 +73,42 @@ export class Customers implements OnInit {
   }
 
   saveCustomer() {
-    if (!this.newCustomer.name) { alert("Nama wajib diisi!"); return; }
-    
-    // Pastikan created_by diisi secara diam-diam menggunakan ID dari Token
-    this.newCustomer.created_by = this.getCurrentUserId();
+    // 1. Validasi Nomor Telepon (Hanya Angka)
+    const phoneRegex = /^[0-9]+$/;
+    if (this.newCustomer.phone && !phoneRegex.test(this.newCustomer.phone)) {
+      Swal.fire({ icon: 'error', title: 'Format Salah', text: 'Nomor telepon HANYA boleh berisi angka!' });
+      return;
+    }
+
+    // 2. Validasi Email (Harus mengandung @ dan . )
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (this.newCustomer.email && !emailRegex.test(this.newCustomer.email)) {
+      Swal.fire({ icon: 'error', title: 'Format Salah', text: 'Format email tidak valid (contoh: budi@gmail.com)!' });
+      return;
+    }
+
+    if (!this.newCustomer.name) { 
+      Swal.fire({ icon: 'error', title: 'Oops...', text: 'Nama Customer wajib diisi!' });
+      return; 
+    }
+
+    this.newCustomer.created_by = this.getCurrentUserId(); // Auto-fill ID Login
 
     this.isSaving = true;
     this.api.createCustomer(this.newCustomer).subscribe({
       next: () => {
         this.loadCustomers();
-        // Reset form dengan created_by otomatis lagi
-        this.newCustomer = { name: '', email: '', phone: '', company: '', status: '', created_by: this.getCurrentUserId() };
         this.isSaving = false;
+        this.closeModal('addCustomerModal');
         
-        // Tutup modal menggunakan Vanilla JS (Cara paling aman di Angular tanpa jQuery)
-        const modalElement = document.getElementById('addCustomerModal');
-        if (modalElement) {
-          const modal = (window as any).bootstrap.Modal.getInstance(modalElement);
-          modal?.hide();
-        }
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Customer baru telah ditambahkan.', timer: 1500, showConfirmButton: false });
+        
+        // Reset Form
+        this.newCustomer = { name: '', email: '', phone: '', company: '', status: '', created_by: this.getCurrentUserId() };
       },
-      error: (err) => {
-        console.error("Gagal simpan data:", err);
-        alert("Gagal menyimpan data pelanggan!");
-        this.isSaving = false;
-        this.cdr.detectChanges();
+      error: () => { 
+        this.isSaving = false; this.cdr.detectChanges(); 
+        Swal.fire('Gagal', 'Gagal menyimpan data customer.', 'error'); 
       }
     });
   }
@@ -120,12 +133,27 @@ export class Customers implements OnInit {
 
   // 3. Fungsi untuk mengirim perubahan ke Backend
   saveEditCustomer() {
-    if (!this.editCustomerData.name || !this.editCustomerData.email) {
-      alert("Nama dan Email wajib diisi!");
+    // 1. Validasi Nomor Telepon (Hanya Angka)
+    const phoneRegex = /^[0-9]+$/;
+    if (this.editCustomerData.phone && !phoneRegex.test(this.editCustomerData.phone)) {
+      Swal.fire({ icon: 'error', title: 'Format Salah', text: 'Nomor telepon HANYA boleh berisi angka!' });
+      return;
+    }
+
+    // 2. Validasi Email (Harus mengandung @ dan . )
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (this.editCustomerData.email && !emailRegex.test(this.editCustomerData.email)) {
+      Swal.fire({ icon: 'error', title: 'Format Salah', text: 'Format email tidak valid (contoh: budi@gmail.com)!' });
+      return;
+    }
+
+    if (!this.editCustomerData.name) {
+      Swal.fire({ icon: 'error', title: 'Oops...', text: 'Nama Customer tidak boleh kosong!' });
       return;
     }
 
     const payload = {
+      id: this.editCustomerData.id,
       name: this.editCustomerData.name,
       email: this.editCustomerData.email,
       phone: this.editCustomerData.phone,
@@ -134,49 +162,48 @@ export class Customers implements OnInit {
     };
 
     this.isUpdating = true;
-    this.api.updateCustomer(this.editCustomerData.id, this.editCustomerData).subscribe({
-      next: (res) => {
-        // Refresh tabel agar data baru muncul
+    this.api.updateCustomer(this.editCustomerData.id, payload).subscribe({
+      next: () => {
         this.loadCustomers();
         this.isUpdating = false;
-        
-        // Tutup modal
-        const modalElement = document.getElementById('editCustomerModal');
-        if (modalElement) {
-          const modal = (window as any).bootstrap.Modal.getInstance(modalElement);
-          modal?.hide();
-        }
+        this.closeModal('editCustomerModal');
+        Swal.fire({ icon: 'success', title: 'Diperbarui!', text: 'Profil customer berhasil diubah.', timer: 1500, showConfirmButton: false });
       },
-      error: (err) => {
-        console.error("Gagal update data:", err);
-        alert("Gagal mengubah data pelanggan!");
-        this.isUpdating = false;
-        this.cdr.detectChanges();
+      error: () => { 
+        this.isUpdating = false; this.cdr.detectChanges(); 
+        Swal.fire('Gagal', 'Gagal memperbarui profil customer.', 'error'); 
       }
     });
   }
 
   deleteCustomer(id: number, name: string) {
-    // 1. Munculkan konfirmasi sebelum menghapus
-    const confirmDelete = confirm(`Apakah Anda yakin ingin menghapus pelanggan "${name}"?`);
-    
-    if (confirmDelete) {
-      // 2. Tampilkan efek loading (opsional)
-      this.isLoading = true;
-      
-      // 3. Panggil API untuk menghapus
-      this.api.deleteCustomer(id).subscribe({
-        next: (res) => {
-          alert('Data pelanggan berhasil dihapus!');
-          this.loadCustomers(); // Reload tabel agar data langsung hilang
-        },
-        error: (err) => {
-          console.error("Gagal menghapus data:", err);
-          alert('Gagal menghapus data. Silakan coba lagi.');
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        }
-      });
+    Swal.fire({
+      title: 'Hapus Customer?',
+      text: `Semua data relasi untuk "${name}" juga bisa ikut terhapus!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, hapus permanen!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.api.deleteCustomer(id).subscribe({
+          next: () => { 
+            this.loadCustomers(); 
+            Swal.fire('Terhapus!', 'Data customer telah dihapus dari sistem.', 'success'); 
+          },
+          error: () => Swal.fire('Gagal!', 'Gagal menghapus data. Pastikan tidak ada relasi yang terkunci.', 'error')
+        });
+      }
+    });
+  }
+
+  closeModal(modalId: string) {
+    const modalElement = document.getElementById(modalId);
+    if (modalElement) {
+      const modal = (window as any).bootstrap.Modal.getInstance(modalElement);
+      modal?.hide();
     }
   }
 }

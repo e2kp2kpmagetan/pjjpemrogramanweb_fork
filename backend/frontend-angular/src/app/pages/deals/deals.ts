@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angu
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-Deals',
@@ -27,7 +28,9 @@ export class Deals implements OnInit {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
+  userRole: string = '';
   ngOnInit() {
+    this.userRole = this.api.getUserRole();
     if (isPlatformBrowser(this.platformId)) {
       this.loadDeals();
       this.loadLeadsList(); 
@@ -64,32 +67,27 @@ export class Deals implements OnInit {
   }
 
   saveDeal() {
-    if (!this.newDeal.title) { alert("Judul Deal wajib diisi!"); return; }
-    if (!this.newDeal.lead_id) { alert("Lead wajib dipilih!"); return; }
-
-    // 1. Bersihkan Payload sebelum dikirim ke Backend
+    if (!this.newDeal.title || !this.newDeal.lead_id) {
+      Swal.fire({ icon: 'error', title: 'Oops...', text: 'Title dan Lead wajib diisi/dipilih!' });
+      return;
+    }
     const payload = {
       lead_id: Number(this.newDeal.lead_id),
       title: this.newDeal.title,
       value: this.newDeal.value ? Number(this.newDeal.value) : null,
       stage: this.newDeal.stage,
-      closed_at: this.newDeal.closed_at || null // Kirim null jika tanggal kosong
+      closed_at: this.newDeal.closed_at || null
     };
-    
     this.isSaving = true;
     this.api.createDeal(payload).subscribe({
       next: () => {
         this.loadDeals();
-        this.newDeal = { lead_id: null, title: '', value: null, stage: 'Proposal', closed_at: '' };
         this.isSaving = false;
         this.closeModal('addDealModal');
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Deal baru berhasil ditambahkan.', timer: 1500, showConfirmButton: false });
+        this.newDeal = { lead_id: null, title: '', value: null, stage: 'Proposal', closed_at: '' };
       },
-      error: (err) => { 
-        console.error("Error Tambah Deal:", err); 
-        alert("Gagal menyimpan data Deal!"); 
-        this.isSaving = false; 
-        this.cdr.detectChanges(); 
-      }
+      error: () => { this.isSaving = false; this.cdr.detectChanges(); Swal.fire('Gagal', 'Gagal menambah deal.', 'error'); }
     });
   }
 
@@ -100,31 +98,42 @@ export class Deals implements OnInit {
   }
 
   saveEditDeal() {
-    if (!this.editDealData.title) { alert("Judul Deal wajib diisi!"); return; }
-    if (!this.editDealData.lead_id) { alert("Lead wajib dipilih!"); return; }
-
     const payload = {
+      id: this.editDealData.id,
       lead_id: Number(this.editDealData.lead_id),
       title: this.editDealData.title,
       value: this.editDealData.value ? Number(this.editDealData.value) : null,
       stage: this.editDealData.stage,
       closed_at: this.editDealData.closed_at
     };
-
     this.isUpdating = true;
     this.api.updateDeal(this.editDealData.id, payload).subscribe({
-      next: () => { this.loadDeals(); this.isUpdating = false; this.closeModal('editDealModal'); },
-      error: (err) => { console.error(err); this.isUpdating = false; this.cdr.detectChanges(); }
+      next: () => {
+        this.loadDeals();
+        this.isUpdating = false;
+        this.closeModal('editDealModal');
+        Swal.fire({ icon: 'success', title: 'Diperbarui!', text: 'Data deal berhasil diperbarui.', timer: 1500, showConfirmButton: false });
+      },
+      error: () => { this.isUpdating = false; this.cdr.detectChanges(); Swal.fire('Gagal', 'Gagal mengupdate deal.', 'error'); }
     });
   }
 
-  deleteDeal(id: number, name: string) {
-    if (confirm(`Hapus Deal "${name}"?`)) {
-      this.api.deleteDeal(id).subscribe({
-        next: () => this.loadDeals(),
-        error: () => alert('Gagal menghapus data.')
-      });
-    }
+  deleteDeal(id: number, title: string) {
+    Swal.fire({
+      title: 'Hapus Deal?',
+      text: `Deal "${title}" akan dihapus permanen!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Ya, hapus!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.api.deleteDeal(id).subscribe({
+          next: () => { this.loadDeals(); Swal.fire('Terhapus!', 'Deal telah dihapus.', 'success'); },
+          error: () => Swal.fire('Gagal!', 'Gagal menghapus deal.', 'error')
+        });
+      }
+    });
   }
 
   // Helper penutup modal
