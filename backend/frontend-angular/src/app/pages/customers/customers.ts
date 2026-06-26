@@ -111,18 +111,49 @@ export class Customers implements OnInit {
 
     this.isSaving = true;
     this.api.createCustomer(this.newCustomer).subscribe({
-      next: () => {
+      // 1. Tambahkan parameter res: any
+      next: (res: any) => {
+        // 2. Ambil ID Customer yang baru saja dibuat
+        const newCustId = res.id || (res.data ? res.data.id : null);
+
+        // --- MULAI OTOMATISASI: BUAT LOG AKTIVITAS ---
+        if (newCustId) {
+          const activityPayload = {
+            customer_id: newCustId,
+            type: 'Follow Up',
+            description: `Sistem: Pendaftaran Customer Baru (${this.newCustomer.name}) berhasil dilakukan.`,
+            // Ambil waktu saat ini dipotong ke 16 karakter (yyyy-MM-ddThh:mm)
+            activity_date: new Date().toISOString().slice(0, 16), 
+            created_by: this.getCurrentUserId()
+          };
+
+          // Tembak API Activity
+          this.api.createActivity(activityPayload).subscribe({
+            next: () => console.log('Sistem: Aktivitas pendaftaran otomatis dicatat!'),
+            error: (err) => console.error('Sistem: Gagal mencatat aktivitas otomatis', err)
+          });
+        }
+        // --- SELESAI OTOMATISASI ---
+
         this.loadCustomers();
         this.isSaving = false;
         this.closeModal('addCustomerModal');
         
-        Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Customer baru telah ditambahkan.', timer: 1500, showConfirmButton: false });
+        // Pop-up disesuaikan
+        Swal.fire({ 
+          icon: 'success', 
+          title: 'Berhasil!', 
+          text: 'Customer ditambahkan & aktivitas dicatat otomatis.', 
+          timer: 2000, 
+          showConfirmButton: false 
+        });
         
         // Reset Form
         this.newCustomer = { name: '', email: '', phone: '', company: '', status: '', created_by: this.getCurrentUserId() };
       },
       error: () => { 
-        this.isSaving = false; this.cdr.detectChanges(); 
+        this.isSaving = false; 
+        this.cdr.detectChanges(); 
         Swal.fire('Gagal', 'Gagal menyimpan data customer.', 'error'); 
       }
     });

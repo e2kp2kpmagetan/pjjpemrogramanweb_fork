@@ -89,17 +89,40 @@ export class Leads implements OnInit {
 
     this.isSaving = true;
     this.api.createLead(this.newLead).subscribe({
-      next: () => {
+      // 1. Tambahkan parameter res: any untuk menangkap respons dari backend
+      next: (res: any) => {
+        // 2. Ambil ID Lead yang baru saja dibuat oleh MySQL
+        const newLeadId = res.id || (res.data ? res.data.id : null);
+
+        // --- MULAI OTOMATISASI: BUAT DEAL BARU ---
+        if (newLeadId) {
+          const dealPayload = {
+            lead_id: newLeadId,
+            customer_id: this.newLead.customer_id,
+            title: `Peluang: ${this.newLead.title}`, // Prefix otomatis
+            value: 0, // Nilai default 0
+            status: 'Open',
+            closed_at: null
+          };
+
+          // Tembak API Deal di belakang layar tanpa mengganggu user
+          this.api.createDeal(dealPayload).subscribe({
+            next: () => console.log('Sistem: Deal otomatis berhasil dibuat!'),
+            error: (err) => console.error('Sistem: Gagal membuat deal otomatis', err)
+          });
+        }
+        // --- SELESAI OTOMATISASI ---
+
         this.loadLeads(); // Refresh tabel
         this.isSaving = false;
         this.closeModal('addLeadModal');
 
-        // POP-UP BERHASIL ADD
+        // POP-UP BERHASIL ADD (Teks disesuaikan)
         Swal.fire({
           icon: 'success',
           title: 'Berhasil!',
-          text: 'Data baru telah sukses disimpan ke database.',
-          timer: 1500,
+          text: 'Data Lead baru dan Deal otomatis telah sukses disimpan.',
+          timer: 2000,
           showConfirmButton: false
         });
         
