@@ -27,6 +27,4 @@ app.use("/api", router);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running pada http://localhost:${PORT}`);
-});
+module.exports = app
