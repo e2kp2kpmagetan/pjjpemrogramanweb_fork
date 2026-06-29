@@ -19,7 +19,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Sajikan file statis frontend
 app.use(express.static(path.join(__dirname, "frontend")));
-
+app.get("/coba",(req,res)=>{
+    res.send("halo vercel")
+})
 // Prefix untuk semua rute API
 app.use("/api", router);
 
